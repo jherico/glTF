@@ -2,6 +2,7 @@
 #include "easings.hpp"
 #include "camera.hpp"
 #include "json.hpp"
+#include "storage.hpp"
 
 namespace glfw {
     class Window {
@@ -114,6 +115,9 @@ namespace glfw {
 
 } // namespace glfw
 
+
+
+
 std::once_flag glfw::Window::init;
 
 class SimpleExample : public glfw::Window {
@@ -165,14 +169,27 @@ public:
     }
 
     void runParser() {
-        std::string binFile { PROJECT_ROOT "/data/gltf/2.0/Triangle/glTF/simpleTriangle.bin"};
-        std::string gltfFile { PROJECT_ROOT "/data/gltf/2.0/Triangle/glTF/Triangle.gltf"};
+        std::string exampleFolder{ PROJECT_ROOT "/data/gltf/2.0/Triangle/glTF/" };
+        std::string gltfFile{ exampleFolder + "Triangle.gltf" };
         using json = nlohmann::json;
 
         json gltfData; 
         {
             std::ifstream infile{ gltfFile };
             infile >> gltfData;
+        }
+
+        auto buffers = gltfData["buffers"];
+        if (buffers.is_object()) {
+            for (auto itr = buffers.begin(); itr != buffers.end(); ++itr) {
+                auto key = itr.key();
+                auto object = *itr;
+                auto uriIsString = object["uri"].is_string();
+                auto uri = object.value("uri", "foo");
+                std::string bufferFile = exampleFolder + uri;
+                storage::FileStoragePointer bufferData = std::make_shared<storage::FileStorage>(bufferFile);
+                int i = 0;
+            }
         }
 
     }
